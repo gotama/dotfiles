@@ -1,0 +1,99 @@
+# SOURCE
+#--------------------
+if [[ -f /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+  . /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+
+
+# DIRECTORY COLORS
+#--------------------
+#LS_COLORS="rs=0:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44:ex=01;32:";
+#export LS_COLORS
+
+# ALIAS
+#--------------------
+alias ls="ls -G -F"
+alias ll="ls -G -lh"
+alias gowork="cd /Users/james.hawkins/go; ll"
+alias work="cd /Users/james.hawkins/Documents/kurtosys"
+alias gitdelete="echo \"https://stackoverflow.com/questions/2003505/how-do-i-delete-a-git-branch-locally-and-remotely\""
+
+# HISTORY
+#--------------------
+HISTFILE=~/.histfile
+HISTSIZE=10000
+SAVEHIST=10000
+
+# EMACS KEY BINDINGS
+#---------------------
+bindkey -e
+
+# AUTO COMPLETION
+#---------------------
+zstyle :compinstall filename "/Users/james.hawkins/.zshrc"
+zstyle ":completion:*" menu select
+zstyle ":completion::complete:*" gain-privileges 1
+
+autoload -Uz compinit
+compinit
+
+# PROMPT
+# FIX RPROMPT="$(vcs_info_wrapper)" Its not updating when we change a branch
+#--------------------
+autoload -Uz promptinit
+promptinit
+#PROMPT="%m %1d$ "
+PROMPT="%B%F{green}%T%f # %F{red}%2d$%f %#%b "
+
+setopt prompt_subst
+autoload -Uz vcs_info
+zstyle ":vcs_info:*" actionformats \
+    "%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{3}|%F{1}%a%F{5}]%f "
+zstyle ":vcs_info:*" formats       \
+    "%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{5}]%f "
+zstyle ":vcs_info:(sv[nk]|bzr):*" branchformat "%b%F{1}:%F{3}%r"
+
+zstyle ":vcs_info:*" enable git cvs svn
+
+# or use pre_cmd, see man zshcontrib
+vcs_info_wrapper() {
+  vcs_info
+  if [ -n "$vcs_info_msg_0_" ]; then
+    echo "%{$fg[grey]%}${vcs_info_msg_0_}%{$reset_color%}$del"
+  fi
+}
+RPROMPT="$(vcs_info_wrapper)"
+
+
+# NVM
+#--------------------
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+autoload -U add-zsh-hook
+load-nvmrc() {
+  local node_version="$(nvm version)"
+  local nvmrc_path="$(nvm_find_nvmrc)"
+
+  if [ -n "$nvmrc_path" ]; then
+    local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+
+    if [ "$nvmrc_node_version" = "N/A" ]; then
+      nvm install
+    elif [ "$nvmrc_node_version" != "$node_version" ]; then
+      nvm use
+    fi
+  elif [ "$node_version" != "$(nvm version default)" ]; then
+    echo "Reverting to nvm default version"
+    nvm use default
+  fi
+}
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
+
+# VSCODE
+# TODO upgrade to zshenv
+#--------------------
+export PATH="\$PATH:$HOME/.pub-cache/bin:$HOME/.nvm/versions/node/v8.11.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/usr/local/share/dotnet:~/.dotnet/tools:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+
